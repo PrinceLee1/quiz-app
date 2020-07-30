@@ -1,12 +1,14 @@
 import React, {useState} from 'react';
+import '../src/App.css'
 import {fetchQuizQuestions} from './components/API';
 //Components
 import QuestionCard from '../src/components/QuestionCard';
 //Types
 import {QuestionState,Difficulty} from './components/API';
 
+import { GlobalStyle} from './App.styles'
 
-type AnswerObject = {
+export type AnswerObject = {
   questions: string;
   answer: string;
   correct: boolean;
@@ -46,13 +48,36 @@ const App = () => {
   }
 
   const checkAnswer = (e: React.MouseEvent<HTMLButtonElement>) => {
-
+    if(!gameOver){
+      //User answer
+      const answer = e.currentTarget.value;
+      //Check answer against correct answer
+      const correct = questions[number].correct_answer === answer;
+      //Add score if answer is correct 
+      if(correct) setScore(prev => prev + 1);
+      //Save the answer in the  array of user answers
+      const answerObject = {
+        question: questions[number].question,
+        answer,
+        correct,
+        correctAnswer: questions[number].correct_answer,
+      }
+      setUserAnswers((prev) => [...prev, answerObject]as any)
+    }
   }
 
   const nextQuestion = () => {
-    
+    //Move on to the next question if not on the last
+    const nextQuestion = number + 1;
+    if(nextQuestion === TOTAL_QUESTIONS) {
+      setGameOver(true);
+    }else{
+      setNumber(nextQuestion);
+    }
   }
   return (
+    <>
+    <GlobalStyle/>
     <div className="App">
       <h1>REACT QUIZ APP</h1>
       {questions || userAnswers.length === TOTAL_QUESTIONS ? (
@@ -61,7 +86,7 @@ const App = () => {
       </button>
       ) : null}
      
-     {!gameOver ? <p className="score">Score:</p> : null}
+     {!gameOver ? <p className="score">Score: {score}</p> : null}
       {loading && <p>Loading Questions. . .</p>}
       {!loading && !gameOver && (
           <QuestionCard
@@ -81,8 +106,12 @@ const App = () => {
         Next Question
       </button>
     ) : null}
+    { number === TOTAL_QUESTIONS - 1 ?(
+                      <h1 className="game-over">QUIZ OVER</h1>
+    ): null}
     
        </div>
+       </>
   );
 }
 
